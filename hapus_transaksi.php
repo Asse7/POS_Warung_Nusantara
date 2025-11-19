@@ -15,7 +15,7 @@ if (isset($_GET['id'])) {
         $_SESSION['pesan'] = "Data transaksi berhasil dihapus!";
     } else {
         // Jika gagal
-        $_SESSION['pesan'] = "Gagal menghapus data transaksi: " . mysqli_error($konek);
+        $_SESSION['pesan'] = "Data transaksi gagal dihapus: " . mysqli_error($konek);
     }
 
     header("Location: ?page=laporan"); // kembali ke halaman laporan
