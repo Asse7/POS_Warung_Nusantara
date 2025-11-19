@@ -76,4 +76,34 @@ if (!isset($user)) {
             ?>
         </div>
     </div>
+
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const currentUrl = window.location.search;
+
+    document.querySelectorAll(".list-group a").forEach(item => {
+        if (item.getAttribute("href") === currentUrl) {
+            item.classList.add("active");
+            item.style.backgroundColor = "#4d2804ff";
+            item.style.color = "#fff";
+        } else {
+            item.classList.remove("active");
+        }
+
+        // Tambahkan efek hover
+        item.addEventListener("mouseover", () => {
+            item.style.backgroundColor = "#5a3310";
+            item.style.color = "#fff";
+            item.style.transition = "0.2s";
+        });
+
+        item.addEventListener("mouseout", () => {
+            if (!item.classList.contains("active")) {
+                item.style.backgroundColor = "#fff";
+                item.style.color = "#000";
+            }
+        });
+    });
+});
+</script>
 </body>

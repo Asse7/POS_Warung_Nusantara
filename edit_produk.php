@@ -16,35 +16,46 @@ $data = $tampil->fetch_array();
             $harga_barang = $_POST['harga_barang'];
             $stok = $_POST['stok'];
 
-            // 🔍 Validasi agar tidak boleh nilai minus
-            if ($harga_barang < 0 || $stok < 0) {
+            // Cek  nama_barang sudah ada di data lain 
+            $cek_nama = $konek->query("SELECT * FROM barang WHERE nama_barang='$nama_barang' AND id_barang != '$id_barang'");
+            if ($cek_nama->num_rows > 0) {
                 echo "<div class='alert alert-warning mt-3 text-center'>
-                        ⚠️ Harga dan stok tidak boleh bernilai negatif!
+                        ⚠️ Nama barang sudah digunakan. Silakan gunakan nama lain!
                       </div>";
             } else {
-                $nama_file = $_FILES['gambar']['name'];
-                $temp_file = $_FILES['gambar']['tmp_name'];
-                $upload_dir = 'poto/';
-
-                // Default pakai gambar lama
-                $file_gambar = $data['file_gambar'];
-
-                // Jika upload gambar baru
-                if (!empty($nama_file)) {
-                    if (move_uploaded_file($temp_file, $upload_dir . $nama_file)) {
-                        $file_gambar = $nama_file; // pakai gambar baru
-                    }
-                }
-
-                $update = $konek->query("UPDATE barang 
-                    SET nama_barang='$nama_barang', kode_barang='$kode_barang', 
-                        harga_barang='$harga_barang', stok='$stok', file_gambar='$file_gambar' 
-                    WHERE id_barang='$id_barang'");
-
-                if (!$update) {
-                    echo "<div class='alert alert-danger mt-3'>❌ Maaf, data gagal diupdate.</div>";
+                // Validasi harga dan stok
+                if ($harga_barang < 0 || $stok < 0) {
+                    echo "<div class='alert alert-warning mt-3 text-center'>
+                            ⚠️ Harga dan stok tidak boleh bernilai negatif!
+                          </div>";
                 } else {
-                    echo '<div class="alert alert-success mt-3 text-center">✅ Data berhasil diupdate!</div>';
+                    $nama_file = $_FILES['gambar']['name'];
+                    $temp_file = $_FILES['gambar']['tmp_name'];
+                    $upload_dir = 'poto/';
+
+                    // Default pakai gambar lama
+                    $file_gambar = $data['file_gambar'];
+
+                    // Jika upload gambar baru
+                    if (!empty($nama_file)) {
+                        if (move_uploaded_file($temp_file, $upload_dir . $nama_file)) {
+                            $file_gambar = $nama_file; // pakai gambar baru
+                        }
+                    }
+
+                    $update = $konek->query("UPDATE barang 
+                        SET nama_barang='$nama_barang', kode_barang='$kode_barang', 
+                            harga_barang='$harga_barang', stok='$stok', file_gambar='$file_gambar' 
+                        WHERE id_barang='$id_barang'");
+
+                    if (!$update) {
+                        echo "<div class='alert alert-danger mt-3'>❌ Maaf, data gagal diupdate.</div>";
+                    } else {
+                        echo '<div class="alert alert-success mt-3 text-center">✅ Data berhasil diupdate!</div>';
+                        // Refresh data supaya form terupdate dengan data baru
+                        $tampil = $konek->query("SELECT * FROM barang WHERE id_barang='$id_barang'");
+                        $data = $tampil->fetch_array();
+                    }
                 }
             }
         }
@@ -59,22 +70,22 @@ $data = $tampil->fetch_array();
                     <div class="mb-2">
                         <label class="form-label">Kode</label>
                         <input type="text" class="form-control form-control-sm" name="kode_barang" 
-                               value="<?= $data['kode_barang'] ?>" readonly>
+                               value="<?= htmlspecialchars($data['kode_barang']) ?>" readonly>
                     </div>
                     <div class="mb-2">
                         <label class="form-label">Nama</label>
                         <input type="text" class="form-control form-control-sm" name="nama_barang" 
-                               value="<?= $data['nama_barang'] ?>" required>
+                               value="<?= htmlspecialchars($data['nama_barang']) ?>" required>
                     </div>
                     <div class="mb-2">
                         <label class="form-label">Harga</label>
                         <input type="number" class="form-control form-control-sm" name="harga_barang" 
-                               min="0" value="<?= $data['harga_barang'] ?>" required>
+                               min="0" value="<?= htmlspecialchars($data['harga_barang']) ?>" required>
                     </div>
                     <div class="mb-2">
                         <label class="form-label">Stok</label>
                         <input type="number" class="form-control form-control-sm" name="stok" 
-                               min="0" value="<?= $data['stok'] ?>" required>
+                               min="0" value="<?= htmlspecialchars($data['stok']) ?>" required>
                     </div>
                     <div class="mb-2">
                         <label for="formFile" class="form-label">Masukan Gambar</label>

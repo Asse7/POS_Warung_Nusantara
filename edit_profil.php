@@ -1,7 +1,6 @@
 <?php
 include 'query/boot.php';
 include 'query/koneksi.php';
-// session_start();
 
 // Pastikan user sudah login
 if (!isset($_SESSION['id_admin'])) {
@@ -11,15 +10,13 @@ if (!isset($_SESSION['id_admin'])) {
 
 $id_admin = $_SESSION['id_admin'];
 
-// Ambil data admin
+// Ambil data admin saat ini
 $query = $konek->query("SELECT * FROM admin WHERE id_admin='$id_admin'");
 $data  = $query->fetch_assoc();
 
-// Proses update profil
+// ===== PROSES UPDATE =====
 if (isset($_POST['simpan'])) {
 
-    $nama          = mysqli_real_escape_string($konek, $_POST['nama']);
-    $username      = mysqli_real_escape_string($konek, $_POST['username']);
     $password_lama = mysqli_real_escape_string($konek, $_POST['password_lama']);
     $password_baru = mysqli_real_escape_string($konek, $_POST['password_baru']);
 
@@ -33,31 +30,20 @@ if (isset($_POST['simpan'])) {
         echo "<div class='alert alert-danger mt-3'>Password lama salah! Perubahan dibatalkan.</div>";
     } else {
 
-        // Jika password baru kosong → tidak ubah password
-        if ($password_baru == "") {
-            $update = $konek->query("
-                UPDATE admin SET 
-                    nama='$nama',
-                    username='$username'
-                WHERE id_admin='$id_admin'
-            ");
+        // UPDATE password jika ada perubahan
+        if ($password_baru != "") {
+            $sql = "UPDATE admin SET password=MD5('$password_baru') WHERE id_admin='$id_admin'";
         } else {
-            $update = $konek->query("
-                UPDATE admin SET 
-                    nama='$nama',
-                    username='$username',
-                    password=MD5('$password_baru')
-                WHERE id_admin='$id_admin'
-            ");
+            $sql = "UPDATE admin SET id_admin=id_admin WHERE id_admin='$id_admin'"; // Query dummy
         }
 
-        if ($update) {
-            $_SESSION['nama_admin'] = $nama;
-            $_SESSION['user']       = $username;
+        $update = $konek->query($sql);
 
-            echo "<div class='alert alert-success mt-3'>Profil berhasil diperbarui!</div>";
+        if ($update) {
+            echo "<div class='alert alert-success mt-3'>Password berhasil diperbarui!</div>";
+            echo "<meta http-equiv='refresh' content='1'>";
         } else {
-            echo "<div class='alert alert-danger mt-3'>Terjadi kesalahan! Profil gagal diperbarui.</div>";
+            echo "<div class='alert alert-danger mt-3'>Terjadi kesalahan: " . $konek->error . "</div>";
         }
     }
 }
@@ -74,20 +60,8 @@ function togglePassword(id) {
 <!-- VALIDASI FORM -->
 <script>
 function validateForm() {
-    let nama     = document.querySelector("input[name='nama']").value.trim();
-    let username = document.querySelector("input[name='username']").value.trim();
     let pwLama   = document.getElementById("pw_lama").value.trim();
     let pwBaru   = document.getElementById("pw_baru").value.trim();
-
-    if (nama === "") {
-        alert("Nama tidak boleh kosong!");
-        return false;
-    }
-
-    if (username === "") {
-        alert("Email/Username tidak boleh kosong!");
-        return false;
-    }
 
     if (pwLama === "") {
         alert("Password lama wajib diisi!");
@@ -105,7 +79,7 @@ function validateForm() {
         }
     }
 
-    return true; // Lanjut submit
+    return true;
 }
 </script>
 
@@ -118,32 +92,33 @@ function validateForm() {
 
                 <div class="mb-3">
                     <label class="form-label">Nama</label>
-                    <input type="text" name="nama" class="form-control" value="<?php echo $data['nama']; ?>" required>
+                    <input type="text" name="nama" class="form-control" 
+                           value="<?php echo $data['nama']; ?>" readonly>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <input type="text" name="username" class="form-control" value="<?php echo $data['username']; ?>" required>
+                    <input type="text" name="username" class="form-control"
+                           value="<?php echo $data['username']; ?>" readonly>
                 </div>
 
                 <hr>
 
-                <!-- Password Lama -->
                 <div class="mb-3">
                     <label class="form-label">Password Lama (wajib)</label>
                     <div class="input-group">
-                        <input type="password" name="password_lama" id="pw_lama" class="form-control" required placeholder="Masukkan password lama">
+                        <input type="password" name="password_lama" id="pw_lama" class="form-control" required>
                         <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('pw_lama')">
                             Tampilkan
                         </button>
                     </div>
                 </div>
 
-                <!-- Password Baru -->
                 <div class="mb-3">
                     <label class="form-label">Password Baru</label>
                     <div class="input-group">
-                        <input type="password" name="password_baru" id="pw_baru" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah password">
+                        <input type="password" name="password_baru" id="pw_baru" class="form-control"
+                               placeholder="Kosongkan jika tidak ingin mengubah password">
                         <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('pw_baru')">
                             Tampilkan
                         </button>
@@ -151,7 +126,10 @@ function validateForm() {
                 </div>
 
                 <div class="text-center">
-                    <button name="simpan" class="btn btn-primary" onclick="return confirm('Apakah Anda Yakin Ingin Mengedit Profil Ini?')">Simpan Perubahan</button>
+                    <button name="simpan" class="btn btn-primary"
+                            onclick="return confirm('Apakah Anda Yakin Ingin Mengedit Profil Ini?')">
+                        Simpan Perubahan
+                    </button>
                     <a href="beranda.php" class="btn btn-secondary">Kembali</a>
                 </div>
 

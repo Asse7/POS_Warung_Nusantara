@@ -7,6 +7,38 @@ date_default_timezone_set('Asia/Jakarta');
 $tgl_awal  = $_GET['tgl_awal'] ?? '';
 $tgl_akhir = $_GET['tgl_akhir'] ?? '';
 
+$today = date('Y-m-d');
+
+// ===============================
+// VALIDASI TANGGAL
+// ===============================
+if ($tgl_awal && $tgl_akhir && $tgl_awal > $tgl_akhir) {
+    echo "<script>
+        alert('Tanggal awal tidak boleh lebih besar dari tanggal akhir!');
+        window.history.back();
+    </script>";
+    exit;
+}
+
+if ($tgl_awal && $tgl_awal > $today) {
+    echo "<script>
+        alert('Tanggal awal tidak boleh melebihi tanggal hari ini!');
+        window.history.back();
+    </script>";
+    exit;
+}
+
+if ($tgl_akhir && $tgl_akhir > $today) {
+    echo "<script>
+        alert('Tanggal akhir tidak boleh melebihi tanggal hari ini!');
+        window.history.back();
+    </script>";
+    exit;
+}
+
+// ===============================
+// QUERY LAPORAN
+// ===============================
 $where = "";
 if ($tgl_awal && $tgl_akhir) {
   $where = "WHERE DATE(tanggal) BETWEEN '$tgl_awal' AND '$tgl_akhir'";
@@ -16,6 +48,7 @@ $sql = "SELECT id_transaksi, tanggal, total_harga, bayar, atas_nama
         FROM transaksi 
         $where 
         ORDER BY tanggal DESC";
+
 $result = mysqli_query($konek, $sql);
 
 $total = 0;
@@ -30,16 +63,27 @@ $no = 1;
       <form method="get">
         <div class="row g-2 mb-3">
           <div class="col-md-3">
-            <input type="date" class="form-control" name="tgl_awal" value="<?= $_GET['tgl_awal'] ?? '' ?>">
+            <input type="date" 
+                   class="form-control" 
+                   name="tgl_awal" 
+                   value="<?= $_GET['tgl_awal'] ?? '' ?>"
+                   max="<?= date('Y-m-d') ?>">
             <input type="hidden" name="page" value="laporan">
           </div>
+
           <div class="col-md-3">
-            <input type="date" class="form-control" name="tgl_akhir" value="<?= $_GET['tgl_akhir'] ?? '' ?>">
+            <input type="date" 
+                   class="form-control" 
+                   name="tgl_akhir" 
+                   value="<?= $_GET['tgl_akhir'] ?? '' ?>"
+                   max="<?= date('Y-m-d') ?>">
             <input type="hidden" name="page" value="laporan">
           </div>
+
           <div class="col-md-2">
             <button class="btn btn-warning w-100" type="submit">Cari</button>
           </div>
+
           <div class="col-md-2">
             <button class="btn btn-primary w-100" type="button" onclick="printDiv('print')">
               <i class="bi bi-printer"></i> Cetak
@@ -51,9 +95,10 @@ $no = 1;
       <!-- Data laporan -->
       <fieldset id="print">
         <div class="card shadow-lg">
-          <div class="card-header bg-success text-white fw-bold text-star">
+          <div class="card-header bg-success text-white fw-bold text-start">
             Data Laporan
           </div>
+
           <div class="card-body p-0">
             <table class="table table-bordered mb-0 text-center align-middle">
               <thead class="table-light">
@@ -66,6 +111,7 @@ $no = 1;
                   <th>Aksi</th>
                 </tr>
               </thead>
+
               <tbody>
                 <?php while ($row = mysqli_fetch_assoc($result)) : ?>
                   <tr>
@@ -75,25 +121,23 @@ $no = 1;
                     <td>Rp. <?= number_format($row['total_harga'], 0, ',', '.') ?></td>
                     <td>Rp. <?= number_format($row['bayar'], 0, ',', '.') ?></td>
                     <td>
-                      <a href="?page=struk_laporan&id=<?= $row['id_transaksi'] ?>" class="btn btn-sm btn-primary">
+                      <a href="?page=struk_laporan&id=<?= $row['id_transaksi'] ?>" 
+                         class="btn btn-sm btn-primary">
                         <i class="bi bi-card-text"></i>
                       </a>
-                      <!-- <a href="?page=hapus_transaksi&id=<?= $row['id_transaksi'] ?>" 
-                         class="btn btn-sm btn-danger"
-                         onclick="return confirm('Yakin ingin menghapus data laporan ini?')">
-                        <i class="bi bi-trash"></i>
-                      </a> -->
                     </td>
                   </tr>
                   <?php $total += $row['total_harga']; ?>
                 <?php endwhile; ?>
               </tbody>
+
               <tfoot class="fw-bold">
                 <tr>
                   <td colspan="3" class="text-end">TOTAL :</td>
                   <td class="text-center">Rp. <?= number_format($total, 0, ',', '.') ?></td>
                 </tr>
               </tfoot>
+
             </table>
           </div>
         </div>
